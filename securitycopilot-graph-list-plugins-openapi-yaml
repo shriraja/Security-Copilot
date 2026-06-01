@@ -1,0 +1,102 @@
+openapi: 3.0.1
+info:
+  title: MS Graph - Security Copilot Workspace Plugins (beta)
+  description: Lists plugin objects in a Security Copilot workspace.
+  version: 1.0.0-beta
+servers:
+  - url: https://graph.microsoft.com/beta
+paths:
+  /security/securityCopilot/workspaces/{workspaceId}/plugins:
+    get:
+      operationId: ListSecurityCopilotWorkspacePlugins
+      summary: List plugin objects in a Security Copilot workspace.
+      description: >
+        Returns a collection of plugin objects and their properties for the
+        specified Security Copilot workspace. Supports OData $count, $filter,
+        $select, and $top query parameters.
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          description: Workspace ID. Use 'default' for the default workspace.
+          schema:
+            type: string
+            default: default
+        - name: $filter
+          in: query
+          required: false
+          description: OData filter expression (e.g. name eq 'Entra').
+          schema:
+            type: string
+        - name: $select
+          in: query
+          required: false
+          description: Comma-separated properties to include.
+          schema:
+            type: string
+        - name: $top
+          in: query
+          required: false
+          description: Maximum number of results.
+          schema:
+            type: integer
+        - name: $count
+          in: query
+          required: false
+          description: Include @odata.count in the response.
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: A collection of plugin objects.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PluginCollectionResponse"
+        "401":
+          description: Unauthorized.
+        "403":
+          description: Forbidden - missing scope or Security Copilot role.
+components:
+  schemas:
+    PluginCollectionResponse:
+      type: object
+      properties:
+        "@odata.context":
+          type: string
+        "@odata.count":
+          type: integer
+        value:
+          type: array
+          items:
+            $ref: "#/components/schemas/Plugin"
+    Plugin:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Plugin name (primary key). Supports $filter eq, contains.
+        displayName:
+          type: string
+          description: Display name. Supports $filter eq.
+        description:
+          type: string
+        category:
+          type: string
+          description: hidden | microsoft | microsoftConnectors | other | web | testing | plugin | unknownFutureValue
+        catalogScope:
+          type: string
+          description: none | user | workspace | tenant | global | geoGlobal | userWorkspace | unknownFutureValue
+        isEnabled:
+          type: boolean
+        previewState:
+          type: string
+          description: ga | public | private | unknownFutureValue
+        supportedAuthTypes:
+          type: string
+        settings:
+          type: array
+          items:
+            type: object
+        authorization:
+          type: object
