@@ -1,0 +1,72 @@
+openapi: 3.0.1
+info:
+  title: Microsoft Sentinel Analytic Rules API
+  description: API plugin for Microsoft Security Copilot to list Sentinel alert rules.
+  version: 1.0.0
+servers:
+  - url: https://azure.com
+paths:
+  /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules:
+    get:
+      operationId: GetSentinelAnalyticRules
+      summary: List all analytic rules in a Sentinel workspace.
+      description: Returns a collection of scheduled, fusion, or ML behavior analytic rules configured in the workspace.
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          description: The Azure Subscription ID.
+          schema:
+            type: string
+        - name: resourceGroupName
+          in: path
+          required: true
+          description: The name of the Azure Resource Group containing the workspace.
+          schema:
+            type: string
+        - name: workspaceName
+          in: path
+          required: true
+          description: The name of the Log Analytics / Sentinel Workspace.
+          schema:
+            type: string
+        - name: api-version
+          in: query
+          required: true
+          description: The API version for Microsoft.SecurityInsights provider.
+          schema:
+            type: string
+            default: "2023-02-01"
+      responses:
+        '200':
+          description: Successfully retrieved the list of rules.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  value:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        type: string
+                        properties:
+                          type: object
+                          properties:
+                            displayName:
+                              type: string
+                            enabled:
+                              type: boolean
+                            query:
+                              type: string
+                            severity:
+                              type: string
+        '401':
+          description: Unauthorized access. Check permissions.
+        '404':
+          description: Workspace or resource group not found.
