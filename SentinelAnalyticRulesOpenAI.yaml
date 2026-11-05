@@ -1,72 +1,154 @@
 openapi: 3.0.1
 info:
-  title: Microsoft Sentinel Analytic Rules API
-  description: API plugin for Microsoft Security Copilot to list Sentinel alert rules.
-  version: 1.0.0
+  title: Microsoft Sentinel Analytics Rule Reader
+  description: Read-only access to Microsoft Sentinel analytics rules in one Log Analytics workspace.
+  version: "1.0.0"
 servers:
-  - url: https://azure.com
+  - url: https://management.azure.com
 paths:
   /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.OperationalInsights/workspaces/{workspaceName}/providers/Microsoft.SecurityInsights/alertRules:
     get:
-      operationId: GetSentinelAnalyticRules
-      summary: List all analytic rules in a Sentinel workspace.
-      description: Returns a collection of scheduled, fusion, or ML behavior analytic rules configured in the workspace.
+      operationId: ListSentinelAnalyticsRules
+      summary: List Microsoft Sentinel analytics rules
+      description: >-
+        Returns the analytics rules in the selected Microsoft Sentinel workspace. The operation is read-only.
+        Scheduled and NRT rules normally include KQL in properties.query. Other rule kinds may not contain KQL.
       parameters:
         - name: subscriptionId
           in: path
           required: true
-          description: The Azure Subscription ID.
+          description: Azure subscription GUID containing the Sentinel workspace.
           schema:
             type: string
+            format: uuid
         - name: resourceGroupName
           in: path
           required: true
-          description: The name of the Azure Resource Group containing the workspace.
+          description: Resource group containing the Sentinel workspace.
           schema:
             type: string
+            minLength: 1
+            maxLength: 90
         - name: workspaceName
           in: path
           required: true
-          description: The name of the Log Analytics / Sentinel Workspace.
+          description: Log Analytics workspace name.
           schema:
             type: string
+            minLength: 1
+            maxLength: 90
         - name: api-version
           in: query
           required: true
-          description: The API version for Microsoft.SecurityInsights provider.
+          description: Microsoft Sentinel REST API version.
           schema:
             type: string
-            default: "2023-02-01"
+            default: "2025-09-01"
+            enum:
+              - "2025-09-01"
       responses:
-        '200':
-          description: Successfully retrieved the list of rules.
+        "200":
+          description: Analytics rules returned successfully.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  value:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        name:
-                          type: string
-                        type: string
-                        properties:
-                          type: object
-                          properties:
-                            displayName:
-                              type: string
-                            enabled:
-                              type: boolean
-                            query:
-                              type: string
-                            severity:
-                              type: string
-        '401':
-          description: Unauthorized access. Check permissions.
-        '404':
-          description: Workspace or resource group not found.
+                $ref: "#/components/schemas/AlertRulesList"
+        "401":
+          description: Authentication failed.
+        "403":
+          description: The signed-in identity lacks permission to read Sentinel analytics rules.
+        "404":
+          description: Subscription, resource group, workspace, or Sentinel resource was not found.
+        default:
+          description: Azure Resource Manager error.
+components:
+  schemas:
+    AlertRulesList:
+      type: object
+      properties:
+        value:
+          type: array
+          items:
+            $ref: "#/components/schemas/AlertRule"
+        nextLink:
+          type: string
+          nullable: true
+          description: Continuation URL, if Azure paginates the response.
+      required:
+        - value
+      additionalProperties: true
+    AlertRule:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        kind:
+          type: string
+        etag:
+          type: string
+        properties:
+          $ref: "#/components/schemas/AlertRuleProperties"
+      additionalProperties: true
+    AlertRuleProperties:
+      type: object
+      properties:
+        displayName:
+          type: string
+        description:
+          type: string
+          nullable: true
+        enabled:
+          type: boolean
+        severity:
+          type: string
+        query:
+          type: string
+          nullable: true
+        queryFrequency:
+          type: string
+          nullable: true
+        queryPeriod:
+          type: string
+          nullable: true
+        triggerOperator:
+          type: string
+          nullable: true
+        triggerThreshold:
+          type: integer
+          nullable: true
+        lastModifiedUtc:
+          type: string
+          format: date-time
+          nullable: true
+        tactics:
+          type: array
+          items:
+            type: string
+        techniques:
+          type: array
+          items:
+            type: string
+        entityMappings:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        customDetails:
+          type: object
+          additionalProperties:
+            type: string
+        alertDetailsOverride:
+          type: object
+          additionalProperties: true
+        incidentConfiguration:
+          type: object
+          additionalProperties: true
+        eventGroupingSettings:
+          type: object
+          additionalProperties: true
+      additionalProperties: true
+
