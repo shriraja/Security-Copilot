@@ -1,0 +1,29 @@
+openapi: 3.0.1
+info:
+  title: Public IP Test
+  version: "1.0"
+servers:
+  - url: https://api.ipify.org
+paths:
+  /:
+    get:
+      operationId: GetPublicIp
+      summary: Returns the caller's public IP address.
+      description: Returns the caller's public IP address as JSON. Read-only test operation.
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            default: json
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ip:
+                    type: string
